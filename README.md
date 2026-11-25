@@ -1,32 +1,170 @@
 # Laboratório de Programação II
 
-**UFSM · Sistemas de Informação · 2026/2** — Prof. Piveta · Linguagem C
+> Trabalhos de Laboratório de Programação II em C. O T1 é um campo minado de terminal que só gera tabuleiros que se resolvem por dedução (modo No-Guess) e que pode ser resolvido pelo computador.
 
-## Trabalhos
+**Contexto:** UFSM · Sistemas de Informação · Laboratório de Programação II · Prof. Piveta · 2026/2
 
-### T1 — Campo minado (modo No-Guess)
+## Sobre
 
-[`trabalhos/t1-campo-minado`](trabalhos/t1-campo-minado) · versão entregue
+O T1 parte do modelo de campo minado dado pelo professor (a estrutura `Tabuleiro` e as funções de alocar, liberar, preencher e imprimir) e o completa com jogo, solver e gerador. A ideia central é o **No-Guess**: as bombas só são sorteadas depois da primeira jogada, e o sorteio só é aceito se um solver lógico conseguir resolver o tabuleiro inteiro sem chutar. Assim o jogador nunca cai em um 50/50 de pura sorte.
 
-Campo minado no terminal, a partir do modelo do professor (`Tabuleiro`, `alocar`, `liberar`, `preencher`, `imprimir`):
+O trabalho pratica alocação dinâmica de matriz (`int **`), structs, modularização em `.c`/`.h`, busca em vizinhança, flood fill com pilha explícita e um pequeno motor de dedução.
 
-- tabuleiro com alocação dinâmica bidimensional e abertura em flood fill
-- **modo No-Guess**: o campo só é aceito se um solver conseguir resolvê-lo inteiro por dedução, sem chute 50/50
-- solver lógico (regra de 1 quadrado e redução de subconjuntos), dica para o jogador, modo manual e automático
+Há duas versões:
+
+- [`trabalhos/t1-campo-minado`](trabalhos/t1-campo-minado): **versão entregue**, com Makefile.
+- [`trabalhos/t1-campo-minado-versao-modular`](trabalhos/t1-campo-minado-versao-modular): reescrita alternativa, dividida em interface, jogo, solver e tabuleiro, com outra forma de digitar as jogadas e um solver que explica cada passo.
+
+## Funcionalidades
+
+### Versão entregue (`t1-campo-minado`)
+
+- Menu com três opções: jogar, deixar o computador resolver ou sair.
+- Tamanho livre: qualquer número de linhas e colunas (com pelo menos 2 células) e de 1 a `linhas*colunas - 1` bombas.
+- Tabuleiro alocado dinamicamente: `int **celulas` guarda `-1` para bomba e `0..8` para o número de vizinhas, e `int **estado` guarda `0` fechada, `1` aberta e `2` bandeira.
+- As bombas são sorteadas no primeiro clique. O quadrado 3x3 em volta do clique fica livre de bombas quando há espaço; se não há, só a célula clicada é protegida.
+- **Gerador No-Guess:** sorteia até 2000 tabuleiros (ou até 3 segundos) e fica com o primeiro que o solver resolve do início ao fim. Se nenhum servir, por exemplo em um 2x2 com 1 bomba, o jogo avisa que pode ser preciso chutar.
+- **Solver lógico** em duas regras:
+  1. *Um número:* se as bombas que faltam são iguais ao número de casas fechadas em volta, todas são bombas. Se não falta nenhuma, todas as casas fechadas são seguras.
+  2. *Dois números (subconjunto):* se as casas fechadas de um número estão todas entre as de um vizinho a até 2 casas, a diferença entre os dois números diz se as casas que sobram são todas seguras ou todas bombas.
+- **Dica (`s`):** refaz a dedução do zero a partir das casas abertas, sem confiar nas bandeiras do jogador (que podem estar erradas), e indica a próxima jogada segura.
+- **Modo automático:** o computador escolhe o primeiro clique (o centro, ou um canto onde caiba a zona segura), aplica o solver passo a passo com uma pausa de 120 ms e imprime o tabuleiro a cada jogada. Para quando não há mais jogada lógica.
+- Abertura de áreas vazias por flood fill iterativo com pilha alocada (a versão recursiva estourava a pilha a partir de uns 150x150).
+- Leitura de entrada que trata dado inválido e fim de arquivo (EOF), então o programa não entra em laço infinito.
+- O tabuleiro é desenhado com moldura Unicode. No Windows o console é trocado para UTF-8 (`SetConsoleOutputCP`).
+
+### Versão modular (`t1-campo-minado-versao-modular`)
+
+- Cada célula é uma struct `Celula { valor, revelada, marcada }` dentro de uma matriz `Celula **`.
+- Tabuleiro de 2 a 30 linhas e de 2 a 26 colunas. As colunas são letras de `A` a `Z`.
+- As jogadas usam a notação de planilha: `c3` abre, `c3 m` põe ou tira a bandeira.
+- Cabeçalho com bombas restantes e cronômetro `mm:ss`. Tela só com ASCII, sem cores, para sair igual em qualquer terminal.
+- Gerador No-Guess com até 25000 sorteios. Se nenhum servir, fica valendo o último sorteado.
+- O solver usa as mesmas duas regras e **explica cada jogada** (por exemplo `o 1 de B3 ja esta satisfeito`). Quando não há nenhuma certeza, faz o chute de menor risco e mostra a probabilidade estimada.
+- O modo automático pode parar a cada jogada e esperar Enter.
+- No fim da partida mostra todas as bombas e o tempo total.
+
+## Tecnologias
+
+- C99 com GCC
+- Biblioteca padrão (`stdio.h`, `stdlib.h`, `time.h`, `ctype.h`)
+- `windows.h` (`Sleep`, `SetConsoleOutputCP`) no Windows e `unistd.h` (`usleep`) no Linux, só na versão entregue
+- GNU Make
+
+## Estrutura do projeto
+
+| Caminho | Descrição |
+|---|---|
+| `trabalhos/t1-campo-minado/main.c` | Menu, leitura segura da entrada, modo jogador e modo computador |
+| `trabalhos/t1-campo-minado/tabuleiro.c`, `tabuleiro.h` | `Tabuleiro`, alocação e liberação, sorteio das bombas, gerador No-Guess (`Preencher`), flood fill (`Abrir`), bandeiras e impressão |
+| `trabalhos/t1-campo-minado/solver.c`, `solver.h` | `ProximoPasso` (as duas regras), `Dica` e `TestaSolucao` (verifica se o tabuleiro se resolve sem chute) |
+| `trabalhos/t1-campo-minado/Makefile` | Compilação no Linux e no Windows, com `clean` que funciona no cmd e em shells POSIX |
+| `trabalhos/t1-campo-minado/README.md` | Notas técnicas da versão entregue |
+| `trabalhos/t1-campo-minado-versao-modular/main.c` | Laço do menu |
+| `trabalhos/t1-campo-minado-versao-modular/interface.c`, `.h` | Toda a entrada e saída: menus, leitura das jogadas e desenho |
+| `trabalhos/t1-campo-minado-versao-modular/jogo.c`, `.h` | Partida humana e partida do computador, cronômetro |
+| `trabalhos/t1-campo-minado-versao-modular/tabuleiro.c`, `.h` | `Celula`, `Tabuleiro`, sorteio, revelação recursiva e marcação |
+| `trabalhos/t1-campo-minado-versao-modular/solver.c`, `.h` | Dedução com explicação, chute de menor risco e sorteio resolvível |
+
+## Como rodar
+
+### Pré-requisitos
+
+- GCC
+  - Linux: `sudo apt install gcc make` (Debian/Ubuntu) ou equivalente
+  - Windows: [MSYS2](https://www.msys2.org/) com MinGW-w64 (`pacman -S mingw-w64-ucrt-x86_64-gcc make`), ou WSL
+- Make é opcional: dá para compilar direto com `gcc`.
+
+### Passo a passo
+
+```bash
+git clone https://github.com/itskelme/ufsm-si-lab-prog-2.git
+cd ufsm-si-lab-prog-2
+```
+
+**Versão entregue, com Make:**
 
 ```bash
 cd trabalhos/t1-campo-minado
-make            # ou: gcc -Wall -Wextra -std=c99 -O2 -o campo_minado tabuleiro.c solver.c main.c
+make                # no MinGW sem MSYS2 o comando pode ser mingw32-make
+./campo_minado      # no Windows: .\campo_minado.exe
+make clean          # apaga os .o e o executável
+```
+
+**Versão entregue, sem Make:**
+
+```bash
+cd trabalhos/t1-campo-minado
+gcc -Wall -Wextra -std=c99 -O2 -o campo_minado tabuleiro.c solver.c main.c
 ./campo_minado
 ```
 
-[`trabalhos/t1-campo-minado-versao-modular`](trabalhos/t1-campo-minado-versao-modular) é uma versão alternativa, dividida em `interface`, `jogo`, `solver` e `tabuleiro`:
+**Versão modular:**
 
 ```bash
 cd trabalhos/t1-campo-minado-versao-modular
-gcc -Wall -std=c99 -o campominado *.c
+gcc -Wall -std=c99 -o campominado main.c jogo.c interface.c tabuleiro.c solver.c
+./campominado       # no Windows: .\campominado.exe
 ```
+
+Em terminais antigos do Windows a moldura da versão entregue pode aparecer com caracteres estranhos se a fonte não tiver os símbolos de desenho de caixa. O Windows Terminal mostra tudo normalmente. A versão modular usa só ASCII.
+
+## Como usar
+
+### Versão entregue
+
+Escolha `1` (jogar) ou `2` (computador) e informe linhas, colunas e bombas. As coordenadas começam em **0** e aparecem nas bordas do tabuleiro.
+
+| Comando | Ação |
+|---|---|
+| `r L C` | revela a célula da linha `L`, coluna `C` (ex.: `r 2 3`) |
+| `b L C` | põe ou tira a bandeira |
+| `s` | dica da próxima jogada segura |
+| `q` | volta ao menu |
+
+Legenda: `.` fechada, `P` bandeira, número de bombas vizinhas, espaço para vazia e `*` bomba.
+
+```
+      0   1   2   3
+    ┌───┬───┬───┬───┐
+  0 │ . │ . │ 1 │   │
+    ├───┼───┼───┼───┤
+  1 │ . │ P │ 1 │   │
+    └───┴───┴───┴───┘
+```
+
+### Versão modular
+
+Escolha `1` (jogar) ou `2` (o computador resolve) e informe linhas (2-30), colunas (2-26) e bombas. A coluna é uma letra e a linha é um número que começa em 1.
+
+| Entrada | Ação |
+|---|---|
+| `c3` | abre a casa da coluna C, linha 3 |
+| `c3 m` | põe ou tira a bandeira em C3 |
+
+Legenda: `.` fechada, `F` bandeira, número, espaço para vazia e `*` bomba. No modo do computador, responda `s` em "Parar a cada jogada" para avançar com Enter.
+
+## Observações
+
+Pontos encontrados ao revisar o código para este README:
+
+- **No-Guess, nas duas versões:** "resolvível" quer dizer resolvível pelas duas regras do solver. Ele não usa a contagem total de bombas nem combina mais de dois números, então alguns tabuleiros que um humano resolveria são descartados. Isso não cria chute, só torna o gerador mais restrito.
+- **Versão modular:**
+  - Bandeiras colocadas antes da primeira abertura são apagadas, porque a simulação do gerador chama `limparJogadas`.
+  - Quando o chute do computador cai em uma bomba, a mensagem final diz "Voce pisou numa bomba".
+  - `alocar` não confere o `malloc` de cada linha.
+
+## Referências
+
+- [Minesweeper (video game), Wikipedia](https://en.wikipedia.org/wiki/Minesweeper_(video_game)): regras, primeiro clique seguro com abertura garantida e a discussão de quando o jogo obriga a chutar, que serviram de base para o modo No-Guess
+- [Flood fill, Wikipedia](https://en.wikipedia.org/wiki/Flood_fill): abertura das áreas vazias
+- Modelo de código e enunciado do T1 fornecidos pelo Prof. Piveta na disciplina
+
+## Autores
+
+- Diego Kelme Santos da Silva ([@itskelme](https://github.com/itskelme))
+- Prof. Piveta, docente da disciplina e autor do modelo inicial (`Tabuleiro`, alocar, liberar, preencher, imprimir)
 
 ## Licença
 
-[CC BY-NC 4.0](LICENSE): uso pessoal e modificação permitidos com atribuição; uso comercial proibido.
+Este projeto está sob a licença [CC BY-NC 4.0](LICENSE): uso pessoal e modificação permitidos com atribuição; uso comercial proibido. Material de terceiros (enunciados, código fornecido pelo professor) pertence aos respectivos autores.
