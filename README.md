@@ -26,3 +26,7 @@ make            # ou: gcc -Wall -Wextra -std=c99 -O2 -o campo_minado tabuleiro.c
 cd trabalhos/t1-campo-minado-versao-modular
 gcc -Wall -std=c99 -o campominado *.c
 ```
+
+## Licença
+
+[CC BY-NC 4.0](LICENSE): uso pessoal e modificação permitidos com atribuição; uso comercial proibido.
