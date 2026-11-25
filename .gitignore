@@ -1,0 +1,10 @@
+# binarios compilados
+*.exe
+*.o
+*.out
+a.out
+# lixo de sistema/Drive
+desktop.ini
+Thumbs.db
+.DS_Store
+.fuse_hidden*
