@@ -1,0 +1,6 @@
+1;Maria Eduarda Lopes;52998224725;(55) 99912-3456;maria.lopes@email.com
+2;Joao Pedro Fagundes;11144477735;(55) 98123-0045;
+3;Ana Carolina Weber;39053344705;(55) 99654-7781;ana.weber@email.com
+4;Lucas Bortolotto;85351346893;;lucas.b@email.com
+5;Fernanda Dal Forno;27548438923;(55) 99101-2020;fe.dalforno@email.com
+6;Rafael Pozzobon;04401236580;(55) 98877-6655;

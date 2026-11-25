@@ -1,0 +1,8 @@
+1;Caderno universitario 10 materias;24.90;40
+2;Caneta esferografica azul;2.50;200
+3;Mochila escolar;139.90;8
+4;Calculadora cientifica;89.00;12
+5;Marca texto amarelo;4.75;80
+6;Pen drive 32GB;39.90;15
+7;Fone de ouvido;59.90;0
+8;Garrafa termica 500ml;49.90;10
