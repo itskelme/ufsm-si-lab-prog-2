@@ -1,16 +1,28 @@
-# Laboratório de Programação II — Prof. Piveta
+# Laboratório de Programação II
 
-UFSM · Ciência da Computação · 2026/2 · Linguagem C
+**UFSM · Sistemas de Informação · 2026/2** — Prof. Piveta · Linguagem C
 
 ## Trabalhos
 
-| Trabalho | Tema | Pasta |
-|---|---|---|
-| T1 | Campo minado (modo No-Guess, solver lógico) — versão entregue | [`trabalhos/t1-campo-minado`](trabalhos/t1-campo-minado) |
-| T1 | Campo minado — versão modular alternativa (`interface`, `jogo`) | [`trabalhos/t1-campo-minado-versao-modular`](trabalhos/t1-campo-minado-versao-modular) |
+### T1 — Campo minado (modo No-Guess)
 
-## Compilar
+[`trabalhos/t1-campo-minado`](trabalhos/t1-campo-minado) · versão entregue
+
+Campo minado no terminal, a partir do modelo do professor (`Tabuleiro`, `alocar`, `liberar`, `preencher`, `imprimir`):
+
+- tabuleiro com alocação dinâmica bidimensional e abertura em flood fill
+- **modo No-Guess**: o campo só é aceito se um solver conseguir resolvê-lo inteiro por dedução, sem chute 50/50
+- solver lógico (regra de 1 quadrado e redução de subconjuntos), dica para o jogador, modo manual e automático
 
 ```bash
-cd trabalhos/t1-campo-minado && make
+cd trabalhos/t1-campo-minado
+make            # ou: gcc -Wall -Wextra -std=c99 -O2 -o campo_minado tabuleiro.c solver.c main.c
+./campo_minado
+```
+
+[`trabalhos/t1-campo-minado-versao-modular`](trabalhos/t1-campo-minado-versao-modular) é uma versão alternativa, dividida em `interface`, `jogo`, `solver` e `tabuleiro`:
+
+```bash
+cd trabalhos/t1-campo-minado-versao-modular
+gcc -Wall -std=c99 -o campominado *.c
 ```
